@@ -89,7 +89,8 @@ function sanitizeLogOutput(input) {
 }
 
 const app = express();
-const PORT = process.env.PORT || 3001; // Proxy runs on 3001, React on 3000
+const PORT = process.env.PORT || 3001; // CDN proxy port
+const MERCHANT_FRONTEND_URL = process.env.MERCHANT_FRONTEND_URL || 'http://localhost:3001';
 
 // Security middleware - Add CSP and other security headers
 app.use((req, res, next) => {
@@ -751,7 +752,7 @@ app.use('/api', createProxyMiddleware({
 
 // Proxy everything else to React (simple passthrough)
 app.use('/', createProxyMiddleware({
-  target: 'http://localhost:3000',
+  target: MERCHANT_FRONTEND_URL,
   changeOrigin: true,
   logLevel: 'debug',
   onProxyReq: (proxyReq, req, res) => {
@@ -767,7 +768,7 @@ app.listen(PORT, () => {
 🚀 Demo CDN Proxy running on http://localhost:${PORT}
 
 Architecture:
-  Browser → Proxy:3001 (RFC 9421 CDN simulation) → React:3000 & Backend:8000
+  Browser → Proxy:${PORT} (RFC 9421 CDN simulation) → Frontend & Backend
 
 RFC 9421 HTTP Message Signatures Support:
   ✅ Signature Input parsing: sig2=("@authority" "@path"); created=...; expires=...; keyId="..."; alg="rsa-pss-sha256"
@@ -778,6 +779,7 @@ RFC 9421 HTTP Message Signatures Support:
 
 Test URLs:
   🌐 Normal access: http://localhost:${PORT}
+  🖥️ Frontend target: ${MERCHANT_FRONTEND_URL}
   🔐 With RFC 9421 headers: curl -H "signature-input: sig2=(\\"@authority\\" \\"@path\\"); created=...; keyId=\\"key-id\\"" \\
                                  -H "signature: sig2=:base64-signature:" \\
                                  http://localhost:${PORT}/product/1
