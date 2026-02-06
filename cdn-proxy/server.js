@@ -146,11 +146,24 @@ app.use((req, res, next) => {
 */
 
 // Agent Registry API base URL
-const AGENT_REGISTRY_URL = 'http://localhost:9002';
+// Allow override so we can point at the OpenClaw TAP registry.
+const AGENT_REGISTRY_URL = process.env.AGENT_REGISTRY_URL || 'http://localhost:9002';
 
-// Cache for fetched keys to avoid repeated API calls
+// ClawKey API base URL (verifiable human ownership)
+const CLAWKEY_BASE = process.env.CLAWKEY_BASE || 'https://api.clawkey.ai/v1';
+
+// Cache for fetched keys/status to avoid repeated API calls
 const keyCache = new Map();
-const CACHE_TTL = 5 ; // 5 milliseconds
+const clawkeyCache = new Map();
+
+// Key cache TTL (agent registry lookups)
+const KEY_CACHE_TTL_MS = 5000; // 5 seconds
+
+// ClawKey cache TTLs
+// Cache "verified" longer, cache "unverified/unknown" shorter to reduce false negatives after a new verification.
+const CLAWKEY_TTL_VERIFIED_MS = Number(process.env.CLAWKEY_TTL_VERIFIED_MS || 30 * 60 * 1000); // 30 min
+const CLAWKEY_TTL_UNVERIFIED_MS = Number(process.env.CLAWKEY_TTL_UNVERIFIED_MS || 60 * 1000); // 60 sec
+const CLAWKEY_TTL_ERROR_MS = Number(process.env.CLAWKEY_TTL_ERROR_MS || 15 * 1000); // 15 sec
 
 // Nonce cache to prevent replay attacks
 const nonceCache = new Map();
@@ -166,6 +179,12 @@ setInterval(() => {
   }
 }, 60000); // Clean up every minute
 
+function normalizeDeviceId(maybeKeyId) {
+  const s = String(maybeKeyId || '');
+  if (s.startsWith('oc_')) return s.slice(3);
+  return s;
+}
+
 // Function to fetch key directly by keyId from Agent Registry
 async function getKeyById(keyId) {
   const cacheKey = `key:${keyId}`;
@@ -173,7 +192,7 @@ async function getKeyById(keyId) {
   // Check cache first
   if (keyCache.has(cacheKey)) {
     const cached = keyCache.get(cacheKey);
-    if (Date.now() - cached.timestamp < CACHE_TTL) {
+    if (Date.now() - cached.timestamp < KEY_CACHE_TTL_MS) {
       console.log('📋 Using cached key for keyId', sanitizeLogOutput(keyId));
       return cached.key;
     } else {
@@ -207,6 +226,46 @@ async function getKeyById(keyId) {
   }
 }
 
+// Look up ClawKey verification by deviceId.
+// Returns: { verified:boolean, registered:boolean, registeredAt?:string } or null on errors.
+async function getClawkeyStatus(deviceId) {
+  const normalized = normalizeDeviceId(deviceId);
+  const cacheKey = `clawkey:${normalized}`;
+
+  if (clawkeyCache.has(cacheKey)) {
+    const cached = clawkeyCache.get(cacheKey);
+    const age = Date.now() - cached.timestamp;
+    const ttl = cached.ttlMs ?? CLAWKEY_TTL_UNVERIFIED_MS;
+    if (age < ttl) {
+      return { ...cached.value, _cache: { hit: true, ageMs: age, ttlMs: ttl, checkedAtMs: cached.timestamp } };
+    }
+    clawkeyCache.delete(cacheKey);
+  }
+
+  try {
+    const res = await axios.get(`${CLAWKEY_BASE}/agent/verify/device/${encodeURIComponent(normalized)}`);
+    if (res.status === 200 && res.data) {
+      const body = res.data;
+      const value = {
+        verified: !!body.verified,
+        registered: !!body.registered,
+        registeredAt: body.registeredAt,
+      };
+      const ttlMs = value.verified ? CLAWKEY_TTL_VERIFIED_MS : CLAWKEY_TTL_UNVERIFIED_MS;
+      const checkedAtMs = Date.now();
+      clawkeyCache.set(cacheKey, { value, timestamp: checkedAtMs, ttlMs });
+      return { ...value, _cache: { hit: false, checkedAtMs, ttlMs } };
+    }
+    return null;
+  } catch (e) {
+    // Treat failures as "unknown"; do not block if ClawKey is down.
+    // Cache errors briefly to avoid hammering the service.
+    const checkedAtMs = Date.now();
+    const value = null;
+    clawkeyCache.set(cacheKey, { value, timestamp: checkedAtMs, ttlMs: CLAWKEY_TTL_ERROR_MS });
+    return null;
+  }
+}
 
 
 // Parse RFC 9421 signature input string to extract components
@@ -591,9 +650,24 @@ const signatureKeyId = signatureData.keyId;
       nonce: sanitizeLogOutput(signatureData.nonce)
     });
     
-    // Signature is valid - just forward the request as-is (no headers needed)
-    console.log('� Signature valid - forwarding request without modification');
-    
+    // Signature is valid.
+    // Forward a minimal set of derived identity + trust signals to the upstream.
+    // (So the backend can enforce spending limits without needing to re-verify signatures.)
+    req.headers['x-agent-keyid'] = String(keyInfo.key_id || signatureKeyId);
+    req.headers['x-agent-alg'] = String(signatureData.algorithm || keyInfo.algorithm || '');
+
+    // Moltbook signals (best-effort; comes from registry enrichment)
+    req.headers['x-agent-moltbook-claimed'] = String(!!(keyInfo.trust && keyInfo.trust.flags && keyInfo.trust.flags.moltbookClaimed));
+    req.headers['x-agent-moltbook-karma'] = String((keyInfo.trust && keyInfo.trust.signals && keyInfo.trust.signals.moltbook && keyInfo.trust.signals.moltbook.karma) ?? '');
+
+    // ClawKey verification (best-effort; verified by CDN directly)
+    const deviceIdForClawkey = keyInfo.agent_id || keyInfo.key_id || signatureKeyId;
+    const ck = await getClawkeyStatus(deviceIdForClawkey);
+    req.headers['x-agent-clawkey-verified'] = String(!!(ck && ck.verified));
+    req.headers['x-agent-clawkey-registered'] = String(!!(ck && ck.registered));
+
+    console.log('✅ Signature valid - forwarding with x-agent-* headers');
+
     next();
   } catch (error) {
     console.error('❌ CDN: Signature verification error:', sanitizeLogOutput(error.message));
@@ -642,10 +716,11 @@ app.use((req, res, next) => {
   
   const url = req.url.toLowerCase();
   const hasSignatureHeaders = req.headers['signature-input'] && req.headers['signature'];
-  const isProductsApiRoute = url.startsWith('/product/');
+  const isProductPageRoute = url.startsWith('/product/');
+  const isX402CheckoutRoute = url.startsWith('/api/cart/') && url.endsWith('/x402/checkout');
 
-  if (isProductsApiRoute) {
-    // /products/ route - signature is required
+  if (isProductPageRoute || isX402CheckoutRoute) {
+    // Product pages and x402 checkout require signatures
     if (!hasSignatureHeaders) {
       console.log(`❌ /products/ route requires signatures - rejecting: ${sanitizeLogOutput(req.url)}`);
       return sendErrorResponse(res, 403, '🔐 Signature Required', 
@@ -657,7 +732,7 @@ app.use((req, res, next) => {
     console.log(`🔐 /products/ route with signatures - verifying: ${sanitizeLogOutput(req.url)}`);
     verifySignature(req, res, next).catch(next);
   } else {
-    // Non-/product/ route without signatures - allow
+    // Other routes without signatures - allow
     next();
   }
 });

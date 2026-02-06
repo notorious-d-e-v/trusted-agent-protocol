@@ -6,7 +6,7 @@
 #
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy.orm import Session
 from app.database.database import get_db
 from app.models.models import (
@@ -762,6 +762,7 @@ def fulfill_cart(
 async def x402_checkout(
     session_id: str,
     checkout_data: dict,
+    request: 'Request',
     db: Session = Depends(get_db)
 ):
     """
@@ -793,6 +794,38 @@ async def x402_checkout(
         tax_rate = 0.0875  # 8.75% tax
         tax_amount = subtotal * tax_rate
         total_amount = subtotal + shipping_cost + tax_amount
+
+        # --- Trust / spend gating (demo) ---
+        # The CDN proxy (TAP verifier) forwards derived identity signals via x-agent-* headers.
+        # Policy / tiers:
+        # - No verification: browse only (no checkout)
+        # - Moltbook claimed: up to $5 spend
+        # - Moltbook claimed + high karma: up to $20 spend
+        # - Human verified via ClawKey: up to $2,000 spend
+        # All payments on this route are via x402.
+        clawkey_verified = (request.headers.get('x-agent-clawkey-verified') or '').lower() == 'true'
+        moltbook_claimed = (request.headers.get('x-agent-moltbook-claimed') or '').lower() == 'true'
+        try:
+            moltbook_karma = int(request.headers.get('x-agent-moltbook-karma') or 0)
+        except ValueError:
+            moltbook_karma = 0
+
+        # Configurable reputation threshold (default 100)
+        import os
+        high_rep_threshold = int(os.getenv('MOLTBOOK_HIGH_KARMA', '100'))
+        is_high_rep_molty = moltbook_claimed and moltbook_karma >= high_rep_threshold
+
+        # Determine per-transaction spend limit
+        if clawkey_verified:
+            limit = 2000.0
+        elif moltbook_claimed:
+            limit = 20.0 if is_high_rep_molty else 5.0
+        else:
+            # No verification => browse only
+            raise HTTPException(status_code=403, detail='Checkout requires Moltbook-claimed agent (tiered limits) or ClawKey-verified human owner')
+
+        if float(total_amount) > limit:
+            raise HTTPException(status_code=403, detail=f'Checkout limit exceeded: total ${float(total_amount):.2f} > ${limit:.2f}')
         
         # Prepare items for settlement request
         items = []
