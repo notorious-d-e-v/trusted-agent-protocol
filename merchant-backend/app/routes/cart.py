@@ -790,7 +790,11 @@ async def x402_checkout(
         
         # Calculate totals
         subtotal = sum(item.quantity * item.product.price for item in cart.items)
-        shipping_cost = 15.00  # Standard shipping
+
+        # Demo shipping policy: digital-only carts have no shipping.
+        is_digital_only = all((item.product.category or '').lower() == 'digital' for item in cart.items)
+        shipping_cost = 0.00 if is_digital_only else 15.00  # Standard shipping
+
         tax_rate = 0.0875  # 8.75% tax
         tax_amount = subtotal * tax_rate
         total_amount = subtotal + shipping_cost + tax_amount
