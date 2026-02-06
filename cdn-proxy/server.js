@@ -514,8 +514,9 @@ const signatureKeyId = signatureData.keyId;
         'The specified key ID was not found in the registry.', `Key ID: ${signatureKeyId}`);
     }
     
-    // Check if key is active
-    if (keyInfo.is_active !== 'true') {
+    // Check if key is active (support legacy string values and boolean)
+    const isActive = (keyInfo.is_active === true) || (String(keyInfo.is_active).toLowerCase() === 'true');
+    if (!isActive) {
       console.log('❌ CDN: Inactive key - blocking');
       return sendErrorResponse(res, 403, '🔑 Inactive Key', 
         'The specified key is not currently active.', `Key ID: ${keyInfo.key_id}`);
