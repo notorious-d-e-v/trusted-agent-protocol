@@ -17,8 +17,8 @@ The CDN proxy enriches each request with trust signals from external sources, an
 |------|--------|-------------|
 | 0 | Unknown agent | Blocked |
 | 1 | Registry-known (valid [OpenClaw](https://github.com/openclaw/openclaw) device key) | $5/tx |
-| 2 | [ClawKey](https://clawkey.com) verified (human owner) | $100/tx |
-| 3 | [Moltbook](https://moltbook.com) reputation + Tier 2 | $500/tx |
+| 2 | [Moltbook](https://moltbook.com) high reputation + Tier 1 | $20/tx |
+| 3 | [ClawKey](https://clawkey.com) verified (human owner) | $2,000/tx |
 | 4 | Merchant-approved allowlist | Unlimited |
 
 ### 🔗 Real Payment Settlement via x402
