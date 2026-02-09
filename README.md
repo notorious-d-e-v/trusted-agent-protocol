@@ -1,7 +1,45 @@
-# Trusted Agent Protocol
+# Trusted Agent Protocol — Extended
+
+> **This is a fork of [Visa's Trusted Agent Protocol](https://github.com/visa/trusted-agent-protocol)** that extends the reference implementation with real payment settlement, multi-network crypto payments, and a trust-tiered authorization model.
 
 *Establishing a universal standard of trust between AI agents and merchants for the next phase of agentic commerce.*
 
+---
+
+## What This Fork Adds
+
+Visa's original TAP provides cryptographic agent identity verification. This fork takes it further — from *"is this agent legitimate?"* all the way to *"agent verified, payment settled, order confirmed."*
+
+### 🔗 Real Payment Settlement via x402
+Instead of mock checkouts, agents pay with real USDC using the [x402 protocol](https://www.x402.org/) (HTTP 402 Payment Required). The merchant backend returns a `402` with payment requirements, the agent's x402 client signs and submits payment, and the [PayAI facilitator](https://facilitator.payai.network) settles on-chain — all in a single HTTP round-trip.
+
+- **Dual-network support:** Solana mainnet and Base (EVM) mainnet USDC
+- **Sponsored gas fees:** PayAI covers transaction fees on both networks — agents don't need SOL or ETH
+- **Dynamic pricing:** Payment amounts are computed from actual cart contents (subtotal + tax + conditional shipping)
+
+### 🛡️ Trust-Tiered Spend Limits
+The CDN proxy enriches each request with trust signals from external sources, and the merchant enforces spend limits accordingly:
+
+| Tier | Source | Spend Limit |
+|------|--------|-------------|
+| 0 | Unknown agent | Blocked |
+| 1 | Registry-known (valid device key) | $5/tx |
+| 2 | [ClawKey](https://clawkey.com) verified (human owner) | $100/tx |
+| 3 | [Moltbook](https://moltbook.com) reputation + Tier 2 | $500/tx |
+| 4 | Merchant-approved allowlist | Unlimited |
+
+### 🏗️ Production-Ready Architecture
+- **CDN Proxy** verifies TAP signatures, enriches requests with trust headers, and proxies to the merchant
+- **Merchant Backend** enforces trust tiers and gates checkout behind x402 payment middleware
+- **All services deployed on Railway** with a working end-to-end demo
+
+### 📊 What Changed (vs upstream)
+- `merchant-backend/` — x402 payment middleware, trust-tiered spend limits, dynamic pricing, x402 checkout endpoint
+- `cdn-proxy/` — ClawKey/Moltbook trust enrichment, configurable registry + frontend URLs
+- Test scripts for both Solana and EVM payment flows
+- Railway deployment configs for all services
+
+---
 
 ## The Challenge
 
