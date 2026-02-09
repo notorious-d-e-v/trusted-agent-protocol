@@ -819,11 +819,15 @@ async def x402_checkout(
         high_rep_threshold = int(os.getenv('MOLTBOOK_HIGH_KARMA', '100'))
         is_high_rep_molty = moltbook_claimed and moltbook_karma >= high_rep_threshold
 
-        # Determine per-transaction spend limit
+        # Determine per-transaction spend limit (configurable via env)
+        limit_clawkey = float(os.getenv('SPEND_LIMIT_CLAWKEY', '2000'))
+        limit_high_rep = float(os.getenv('SPEND_LIMIT_HIGH_REP', '20'))
+        limit_claimed = float(os.getenv('SPEND_LIMIT_CLAIMED', '5'))
+
         if clawkey_verified:
-            limit = 2000.0
+            limit = limit_clawkey
         elif moltbook_claimed:
-            limit = 20.0 if is_high_rep_molty else 5.0
+            limit = limit_high_rep if is_high_rep_molty else limit_claimed
         else:
             # No verification => browse only
             raise HTTPException(status_code=403, detail='Checkout requires Moltbook-claimed agent (tiered limits) or ClawKey-verified human owner')
@@ -870,7 +874,7 @@ async def x402_checkout(
         
         # Call Payment Facilitator to settle payment
         import requests
-        facilitator_url = "http://localhost:8001"
+        facilitator_url = os.getenv('X402_FACILITATOR_URL', 'http://localhost:8001')
         
         try:
             settlement_response = requests.post(

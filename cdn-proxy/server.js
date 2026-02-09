@@ -91,6 +91,7 @@ function sanitizeLogOutput(input) {
 const app = express();
 const PORT = process.env.PORT || 3001; // CDN proxy port
 const MERCHANT_FRONTEND_URL = process.env.MERCHANT_FRONTEND_URL || 'http://localhost:3001';
+const MERCHANT_BACKEND_URL = process.env.MERCHANT_BACKEND_URL || 'http://localhost:8000';
 
 // Security middleware - Add CSP and other security headers
 app.use((req, res, next) => {
@@ -741,7 +742,7 @@ app.use((req, res, next) => {
 
 // Proxy API requests to backend (simple passthrough)
 app.use('/api', createProxyMiddleware({
-  target: 'http://localhost:8000',
+  target: MERCHANT_BACKEND_URL,
   changeOrigin: true,
   logLevel: 'debug',
   onProxyReq: (proxyReq, req, res) => {

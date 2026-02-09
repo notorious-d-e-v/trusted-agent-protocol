@@ -18,6 +18,7 @@ load_dotenv()
 from fastapi.middleware.cors import CORSMiddleware
 from app.database.database import create_tables
 from app.routes import products, cart, orders, auth
+from app.routes import x402_checkout
 
 # Configure logging
 logging.basicConfig(
@@ -64,13 +65,39 @@ app.include_router(products.router, prefix="/api")
 app.include_router(cart.router, prefix="/api")
 app.include_router(orders.router, prefix="/api")
 app.include_router(auth.router, prefix="/api")
+app.include_router(x402_checkout.router, prefix="/api")
+
+# ---------------------------------------------------------------------------
+# x402 Payment Middleware (USDC on Solana via PayAI facilitator)
+# ---------------------------------------------------------------------------
+# The middleware intercepts POST /api/cart/*/x402/pay:
+#   - No payment header → returns 402 with payment requirements
+#   - With payment header → verifies via facilitator, runs handler, settles
+try:
+    from app.x402_config import create_x402_middleware
+    _x402_mw = create_x402_middleware()
+
+    @app.middleware("http")
+    async def x402_payment_middleware(request, call_next):
+        return await _x402_mw(request, call_next)
+
+    logger.info("✅ x402 payment middleware enabled")
+except Exception as e:
+    logger.warning("⚠️ x402 middleware failed to initialize: %s", e)
+    logger.warning("   x402 checkout will return 500 until this is fixed")
 
 @app.on_event("startup")
 def startup_event():
-    """Create database tables on startup"""
+    """Create database tables on startup and seed sample data if empty"""
     logger.info("🚀 Starting Reference Merchant API...")
     create_tables()
     logger.info("✅ Database tables created/verified")
+    # Seed sample data if the DB is empty
+    try:
+        from create_sample_data import create_sample_products
+        create_sample_products()
+    except Exception as e:
+        logger.warning(f"⚠️ Sample data seeding: {e}")
 
 @app.get("/")
 def read_root():
