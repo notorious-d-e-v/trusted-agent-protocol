@@ -31,7 +31,7 @@ YELLOW='\033[1;33m'
 RED='\033[0;31m'
 NC='\033[0m'
 
-MERCHANT_URL="${MERCHANT_URL:-https://merchant-backend-production-e43a.up.railway.app}"
+MERCHANT_URL="${MERCHANT_URL:-https://merchant.trustedclaw.cc}"
 CDN_PROXY_URL="${CDN_PROXY_URL:-https://cdn-proxy-production.up.railway.app}"
 AGENTWALLET_CONFIG="${AGENTWALLET_CONFIG:-$HOME/.agentwallet/config.json}"
 AW_BASE="https://agentwallet.mcpay.tech/api"
