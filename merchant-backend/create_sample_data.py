@@ -14,166 +14,129 @@ def create_sample_products():
     db = SessionLocal()
     
     sample_products = [
+        # === Tier 1: $0.50 - $4.99 (Registered agents) ===
         {
-            "name": "Wireless Headphones",
-            "description": "High-quality wireless headphones with noise cancellation",
-            "price": 199.99,
-            "category": "Electronics",
-            "image_url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
-            "stock_quantity": 50
+            "name": "API Health Check",
+            "description": "Single API endpoint health check call with response time metrics",
+            "price": 0.50,
+            "category": "API Access",
+            "image_url": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31",
+            "stock_quantity": 1000
         },
         {
-            "name": "Smartphone",
-            "description": "Latest smartphone with advanced camera and long battery life",
-            "price": 699.99,
-            "category": "Electronics",
-            "image_url": "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9",
-            "stock_quantity": 30
+            "name": "Weather Data Query",
+            "description": "Real-time weather data for any global location with 7-day forecast",
+            "price": 1.00,
+            "category": "Data & Analytics",
+            "image_url": "https://images.unsplash.com/photo-1504608524841-42fe6f032b4b",
+            "stock_quantity": 500
         },
         {
-            "name": "Running Shoes",
-            "description": "Comfortable running shoes for daily exercise",
-            "price": 129.99,
-            "category": "Sports",
-            "image_url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
-            "stock_quantity": 75
+            "name": "Basic Analytics Report",
+            "description": "Auto-generated analytics summary with key metrics and trends",
+            "price": 2.99,
+            "category": "Data & Analytics",
+            "image_url": "https://images.unsplash.com/photo-1551288049-bebda4e38f71",
+            "stock_quantity": 200
         },
         {
-            "name": "Coffee Maker",
-            "description": "Automatic coffee maker with programmable timer",
-            "price": 89.99,
-            "category": "Kitchen",
-            "image_url": "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085",
-            "stock_quantity": 25
+            "name": "Stock Quote Bundle",
+            "description": "Bundle of 10 real-time stock quote queries with volume data",
+            "price": 3.99,
+            "category": "Digital Services",
+            "image_url": "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3",
+            "stock_quantity": 300
         },
         {
-            "name": "Laptop",
-            "description": "High-performance laptop for work and gaming",
-            "price": 1299.99,
-            "category": "Electronics",
-            "image_url": "https://images.unsplash.com/photo-1496181133206-80ce9b88a853",
-            "stock_quantity": 15
+            "name": "Digital Sticker Pack",
+            "description": "AI-generated digital sticker collection for agent avatars and branding",
+            "price": 1.99,
+            "category": "Digital Services",
+            "image_url": "https://images.unsplash.com/photo-1561070791-2526d30994b5",
+            "stock_quantity": 999
         },
+        # === Tier 2: $5.00 - $19.99 (Reputable agents) ===
         {
-            "name": "Yoga Mat",
-            "description": "Non-slip yoga mat for home workouts",
-            "price": 29.99,
-            "category": "Sports",
-            "image_url": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b",
+            "name": "Premium API Access (1 Hour)",
+            "description": "Unlimited API calls for one hour with priority rate limits",
+            "price": 9.99,
+            "category": "API Access",
+            "image_url": "https://images.unsplash.com/photo-1544197150-b99a580bb7a8",
             "stock_quantity": 100
         },
         {
-            "name": "Desk Lamp",
-            "description": "LED desk lamp with adjustable brightness",
-            "price": 49.99,
-            "category": "Home",
-            "image_url": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c",
+            "name": "Market Intelligence Report",
+            "description": "Comprehensive market analysis with competitor insights and forecasts",
+            "price": 14.99,
+            "category": "Data & Analytics",
+            "image_url": "https://images.unsplash.com/photo-1460925895917-afdab827c52f",
+            "stock_quantity": 50
+        },
+        {
+            "name": "Compute Credits (1 GPU-Hour)",
+            "description": "One hour of GPU compute on NVIDIA A100 for inference or training",
+            "price": 12.99,
+            "category": "Compute",
+            "image_url": "https://images.unsplash.com/photo-1518770660439-4636190af475",
+            "stock_quantity": 75
+        },
+        {
+            "name": "Public Sentiment Dataset",
+            "description": "Curated dataset of public sentiment analysis across social platforms",
+            "price": 7.99,
+            "category": "Data & Analytics",
+            "image_url": "https://images.unsplash.com/photo-1504868584819-f8e8b4b6d7e3",
             "stock_quantity": 40
         },
         {
-            "name": "Bluetooth Speaker",
-            "description": "Portable Bluetooth speaker with excellent sound quality",
-            "price": 79.99,
-            "category": "Electronics",
-            "image_url": "https://images.unsplash.com/photo-1608043152269-423dbba4e7e1",
-            "stock_quantity": 60
-        },
-        {
-            "name": "Water Bottle",
-            "description": "Insulated stainless steel water bottle",
-            "price": 24.99,
-            "category": "Sports",
-            "image_url": "https://images.unsplash.com/photo-1602143407151-7111542de6e8",
-            "stock_quantity": 80
-        },
-        {
-            "name": "Book: Python Programming",
-            "description": "Comprehensive guide to Python programming",
-            "price": 39.99,
-            "category": "Books",
-            "image_url": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c",
-            "stock_quantity": 35
-        },
-        {
-            "name": "Gaming Headset",
-            "description": "High-quality gaming headset with noise cancellation",
-            "price": 89.99,
-            "category": "Electronics",
-            "image_url": "https://images.unsplash.com/photo-1599669454699-248893623440",
+            "name": "Smart Contract Audit (Basic)",
+            "description": "Automated security audit of Solana or EVM smart contracts under 500 LOC",
+            "price": 19.99,
+            "category": "Digital Services",
+            "image_url": "https://images.unsplash.com/photo-1639762681485-074b7f938ba0",
             "stock_quantity": 25
         },
+        # === Tier 3: $20.00 - $2000.00 (Verified agents) ===
         {
-            "name": "Yoga Mat",
-            "description": "Non-slip premium yoga mat for all exercises",
-            "price": 29.99,
-            "category": "Sports",
-            "image_url": "https://images.unsplash.com/photo-1544367567-0f2fcb009e0b",
-            "stock_quantity": 40
-        },
-        {
-            "name": "Air Fryer",
-            "description": "Digital air fryer for healthy cooking",
-            "price": 119.99,
-            "category": "Kitchen",
-            "image_url": "https://images.unsplash.com/photo-1618336753974-aae8e04506aa",
-            "stock_quantity": 15
-        },
-        {
-            "name": "Desk Lamp",
-            "description": "LED desk lamp with adjustable brightness",
-            "price": 45.99,
-            "category": "Home",
-            "image_url": "https://images.unsplash.com/photo-1513475382585-d06e58bcb0e0",
-            "stock_quantity": 30
-        },
-        {
-            "name": "Cookbook: Healthy Meals",
-            "description": "Collection of nutritious and delicious recipes",
-            "price": 24.99,
-            "category": "Books",
-            "image_url": "https://images.unsplash.com/photo-1481627834876-b7833e8f5570",
-            "stock_quantity": 45
-        },
-        {
-            "name": "Wireless Mouse",
-            "description": "Ergonomic wireless mouse with long battery life",
-            "price": 34.99,
-            "category": "Electronics",
-            "image_url": "https://images.unsplash.com/photo-1527864550417-7fd91fc51a46",
-            "stock_quantity": 55
-        },
-        {
-            "name": "Running Shoes",
-            "description": "Lightweight running shoes with superior cushioning",
-            "price": 129.99,
-            "category": "Sports",
-            "image_url": "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
+            "name": "Enterprise API Key (Monthly)",
+            "description": "Dedicated API key with 1M requests/month, SLA guarantees, and analytics dashboard",
+            "price": 49.99,
+            "category": "Enterprise",
+            "image_url": "https://images.unsplash.com/photo-1551434678-e076c223a692",
             "stock_quantity": 20
         },
         {
-            "name": "Stand Mixer",
-            "description": "Professional stand mixer for baking enthusiasts",
-            "price": 299.99,
-            "category": "Kitchen",
-            "image_url": "https://images.unsplash.com/photo-1578662996442-48f60103fc96",
-            "stock_quantity": 8
+            "name": "Full Market Dataset (Annual)",
+            "description": "Complete annual market dataset with historical trends across 50+ sectors",
+            "price": 199.99,
+            "category": "Enterprise",
+            "image_url": "https://images.unsplash.com/photo-1526628953301-3e589a6a8b74",
+            "stock_quantity": 10
         },
         {
-            "name": "Throw Pillows Set",
-            "description": "Set of 4 decorative throw pillows",
-            "price": 49.99,
-            "category": "Home",
-            "image_url": "https://images.unsplash.com/photo-1586023492125-27b2c045efd7",
-            "stock_quantity": 35
+            "name": "Dedicated Compute Instance (Day)",
+            "description": "24-hour dedicated GPU instance with 8x A100 GPUs and 1TB RAM",
+            "price": 89.99,
+            "category": "Compute",
+            "image_url": "https://images.unsplash.com/photo-1558494949-ef010cbdcc31",
+            "stock_quantity": 5
         },
         {
-            "name": "Book: Web Development",
-            "description": "Modern web development techniques and best practices",
-            "price": 44.99,
-            "category": "Books",
-            "image_url": "https://images.unsplash.com/photo-1555066931-4365d14bab8c",
-            "stock_quantity": 28
-        }
+            "name": "Custom ML Model Training",
+            "description": "End-to-end custom ML model training with hyperparameter optimization and deployment",
+            "price": 499.99,
+            "category": "Compute",
+            "image_url": "https://images.unsplash.com/photo-1677442136019-21780ecad995",
+            "stock_quantity": 3
+        },
+        {
+            "name": "Premium SLA Support Package",
+            "description": "Enterprise support with 15-min response time, dedicated account manager, and 99.99% uptime SLA",
+            "price": 999.99,
+            "category": "Enterprise",
+            "image_url": "https://images.unsplash.com/photo-1553877522-43269d4ea984",
+            "stock_quantity": 5
+        },
     ]
     
     # Check if products already exist

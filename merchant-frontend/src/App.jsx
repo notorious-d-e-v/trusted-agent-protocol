@@ -11,6 +11,7 @@ import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ToastProvider } from './context/ToastContext';
 import { CartProvider } from './context/CartContext';
+import { TrustProvider } from './context/TrustContext';
 import Header from './components/Header';
 import ProductsPage from './pages/ProductsPage';
 import ProductDetailsPage from './pages/ProductDetailsPage';
@@ -18,11 +19,13 @@ import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
 import OrderSuccessPage from './pages/OrderSuccessPage';
 import OrdersPage, { OrderDetailPage } from './pages/OrdersPage';
+import HowItWorksPage from './pages/HowItWorksPage';
 
 
 function App() {
   return (
     <ToastProvider>
+      <TrustProvider>
       <CartProvider>
         <Router>
           <div style={styles.app}>
@@ -36,17 +39,20 @@ function App() {
                 <Route path="/order-success" element={<OrderSuccessPage />} />
                 <Route path="/orders" element={<OrdersPage />} />
                 <Route path="/order/:orderNumber" element={<OrderDetailPage />} />
+                <Route path="/how-it-works" element={<HowItWorksPage />} />
 
               </Routes>
             </main>
             <footer style={styles.footer}>
               <div style={styles.footerContent}>
-                <p>&copy; 2025 TAP Sample Merchant. All rights reserved.</p>
+                <p style={{ margin: '0 0 0.5rem 0' }}>🐾 TrustedClaw — Powered by x402 on Solana</p>
+                <p style={{ margin: 0, fontSize: '0.8rem', color: '#999' }}>Agent Commerce, Verified</p>
               </div>
             </footer>
           </div>
         </Router>
       </CartProvider>
+      </TrustProvider>
     </ToastProvider>
   );
 }
@@ -54,7 +60,7 @@ function App() {
 const styles = {
   app: {
     minHeight: '100vh',
-    backgroundColor: '#f8f9fa',
+    backgroundColor: '#f5f3ff',
     display: 'flex',
     flexDirection: 'column',
   },
@@ -62,7 +68,7 @@ const styles = {
     flex: 1,
   },
   footer: {
-    backgroundColor: '#2c3e50',
+    backgroundColor: '#1A1A2E',
     color: 'white',
     padding: '2rem 0',
     marginTop: '4rem',

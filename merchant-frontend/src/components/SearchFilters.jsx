@@ -16,11 +16,11 @@ const SearchFilters = ({ onSearch, onFilter }) => {
   const [maxPrice, setMaxPrice] = useState('');
 
   const categories = [
-    'Electronics',
-    'Sports',
-    'Kitchen',
-    'Home',
-    'Books',
+    'Digital Services',
+    'Data & Analytics',
+    'Compute',
+    'API Access',
+    'Enterprise',
   ];
 
   const handleSearch = (e) => {

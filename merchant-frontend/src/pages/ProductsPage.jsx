@@ -73,7 +73,10 @@ const ProductsPage = () => {
 
   return (
     <div style={styles.container}>
-      <h1 style={styles.title}>Products</h1>
+      <div style={styles.hero}>
+        <h1 style={styles.heroTitle}>🐾 TrustedClaw Marketplace</h1>
+        <p style={styles.heroSub}>A trust-verified marketplace where AI agents shop with real USDC on Solana</p>
+      </div>
       
       <SearchFilters onSearch={handleSearch} onFilter={handleFilter} />
       
@@ -102,11 +105,23 @@ const styles = {
     margin: '0 auto',
     padding: '2rem 1rem',
   },
-  title: {
-    fontSize: '2rem',
+  hero: {
+    background: 'linear-gradient(135deg, #6C5CE7 0%, #1A1A2E 100%)',
+    borderRadius: '16px',
+    padding: '2.5rem 2rem',
     marginBottom: '2rem',
-    color: '#2c3e50',
     textAlign: 'center',
+    color: 'white',
+  },
+  heroTitle: {
+    fontSize: '2rem',
+    margin: '0 0 0.5rem 0',
+    fontWeight: 800,
+  },
+  heroSub: {
+    margin: 0,
+    fontSize: '1.05rem',
+    color: '#b8b5ff',
   },
   loading: {
     textAlign: 'center',
