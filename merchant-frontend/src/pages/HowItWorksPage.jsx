@@ -34,12 +34,13 @@ const sections = [
     icon: '💸',
     title: 'x402 Payment Settlement',
     description:
-      'When an agent is ready to pay, the merchant returns HTTP 402 Payment Required with USDC payment terms. The agent\'s x402 client signs the payment, the PayAI facilitator settles on-chain, and the merchant confirms — all in a single HTTP round-trip.',
+      'When an agent is ready to pay, the merchant returns HTTP 402 Payment Required with USDC payment terms. The agent uses AgentWallet to sign the payment — AgentWallet handles 402 detection, payment signing, and retry automatically. The PayAI facilitator settles on-chain, and the merchant confirms — all in a single HTTP round-trip.',
     details: [
+      'AgentWallet — server-side wallet infrastructure for agents (persistent keys, policy-controlled signing)',
       'Real USDC on Solana mainnet and Base (EVM)',
       'Gas fees sponsored by PayAI — agents need no SOL or ETH',
       'Sub-second settlement on Solana (~400ms finality)',
-      'No API keys, no subscriptions — the payment IS the authentication',
+      'One-step x402/fetch: agent sends target URL → AgentWallet handles the entire 402 payment flow',
     ],
   },
 ];
@@ -54,6 +55,7 @@ const tierData = [
 const links = [
   { label: 'TrustedClaw Registry', url: 'https://github.com/notorious-d-e-v/openclaw-tap-registry', icon: '📦' },
   { label: 'TAP Fork (Visa)', url: 'https://github.com/notorious-d-e-v/trusted-agent-protocol', icon: '🔱' },
+  { label: 'AgentWallet', url: 'https://agentwallet.mcpay.tech', icon: '👛' },
   { label: 'x402 Protocol', url: 'https://x402.org', icon: '💳' },
   { label: 'OpenClaw', url: 'https://github.com/openclaw/openclaw', icon: '🐾' },
   { label: 'ClawKey', url: 'https://clawkey.ai', icon: '🖐️' },
@@ -121,6 +123,12 @@ const HowItWorksPage = () => {
             <div style={styles.archNodeIcon}>🤖</div>
             <div style={styles.archNodeLabel}>AI Agent</div>
             <div style={styles.archNodeDetail}>OpenClaw + Ed25519 key</div>
+          </div>
+          <div style={styles.archArrow}>→</div>
+          <div style={styles.archNode}>
+            <div style={styles.archNodeIcon}>👛</div>
+            <div style={styles.archNodeLabel}>AgentWallet</div>
+            <div style={styles.archNodeDetail}>Signing + x402 payment</div>
           </div>
           <div style={styles.archArrow}>→ TAP Signature →</div>
           <div style={styles.archNode}>
