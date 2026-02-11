@@ -84,8 +84,13 @@ def _get_cart_total(context: HTTPRequestContext) -> str:
         subtotal = sum(item.product.price * item.quantity for item in cart.items)
         tax_amount = subtotal * 0.0875  # 8.75%
         # Digital-only carts: no shipping
+        DIGITAL_CATEGORIES = {
+            "digital", "digital services", "api access", "data & analytics",
+            "compute", "enterprise", "ai & ml", "software",
+        }
         is_digital = all(
-            (item.product.category or "").lower() == "digital" for item in cart.items
+            (item.product.category or "").lower() in DIGITAL_CATEGORIES
+            for item in cart.items
         )
         shipping = 0.0 if is_digital else 15.0
         total = subtotal + tax_amount + shipping
