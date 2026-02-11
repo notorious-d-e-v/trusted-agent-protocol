@@ -77,8 +77,13 @@ async def x402_pay(
     subtotal = sum(item.product.price * item.quantity for item in cart.items)
     tax_rate = 0.0875
     tax_amount = subtotal * tax_rate
+    DIGITAL_CATEGORIES = {
+        "digital", "digital services", "api access", "data & analytics",
+        "compute", "enterprise", "ai & ml", "software",
+    }
     is_digital = all(
-        (item.product.category or "").lower() == "digital" for item in cart.items
+        (item.product.category or "").lower() in DIGITAL_CATEGORIES
+        for item in cart.items
     )
     shipping_cost = 0.0 if is_digital else 15.0
     total_amount = subtotal + tax_amount + shipping_cost
