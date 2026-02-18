@@ -1713,7 +1713,7 @@ def main():
         button_help = "Create RFC 9421 signature and complete the checkout process"
         tag_value = "agent-payer-auth"
     else:  # x402 Checkout
-        button_text = "💰 Pay with Crypto"
+        button_text = "💰 Pay with USDC (x402)"
         button_help = "Pay with x402 (USDC on Solana or Base)"
         tag_value = "agent-payer-auth"
 
