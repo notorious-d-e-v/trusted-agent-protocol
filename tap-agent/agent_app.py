@@ -1412,6 +1412,7 @@ def perform_x402_checkout(merchant_api_url: str, product_id: int, quantity: int 
         encode_payment_signature_header,
         PAYMENT_SIGNATURE_HEADER,
         PAYMENT_REQUIRED_HEADER,
+        PAYMENT_RESPONSE_HEADER,
     )
 
     # --- Build x402 client with wallet signers ---
@@ -1473,7 +1474,8 @@ def perform_x402_checkout(merchant_api_url: str, product_id: int, quantity: int 
     )
 
     if resp.status_code == 200:
-        return {"success": True, **resp.json()}
+        payment_response_header = resp.headers.get(PAYMENT_RESPONSE_HEADER, "")
+        return {"success": True, "payment_response_header": payment_response_header, **resp.json()}
     else:
         return {"success": False, "error": f"Checkout failed ({resp.status_code}): {resp.text}"}
 
@@ -1743,6 +1745,15 @@ def main():
                             with oc2:
                                 st.metric("Payment", result.get("payment", {}).get("method", "x402"))
                                 st.metric("Network", result.get("payment", {}).get("network", "unknown"))
+                        pr_header = result.get("payment_response_header", "")
+                        if pr_header:
+                            st.markdown("### 🧾 Payment Response Header")
+                            import base64, json as _json
+                            try:
+                                decoded = _json.loads(base64.b64decode(pr_header))
+                                st.json(decoded)
+                            except Exception:
+                                st.code(pr_header, language="text")
                         with st.expander("🔍 Full Response"):
                             st.json(result)
                     else:
