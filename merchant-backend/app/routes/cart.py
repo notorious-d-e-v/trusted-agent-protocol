@@ -837,7 +837,6 @@ async def x402_checkout(
                 "tax": tax_amount,
                 "shipping": shipping_cost,
                 "currency": "USD",
-                "accepts": [r.model_dump() for r in requirements],
                 "checkout_url": checkout_url,
             },
             headers={PAYMENT_REQUIRED_HEADER: pr_header_value},
@@ -863,7 +862,6 @@ async def x402_checkout(
             content={
                 "status": "payment_failed",
                 "error": error_msg,
-                "accepts": [r.model_dump() for r in requirements],
                 "checkout_url": checkout_url,
             },
             headers={PAYMENT_REQUIRED_HEADER: pr_header_value},
