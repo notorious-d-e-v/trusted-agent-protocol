@@ -88,6 +88,85 @@ Each component has detailed setup instructions:
 - **[CDN Proxy](./cdn-proxy/README.md)** - Node.js proxy implementing RFC 9421 signature verification
 - **[Agent Registry](./agent-registry/README.md)** - Public key registry service for agent verification
 
+### 💰 **x402 Payment Setup (Optional)**
+
+The sample includes an x402 payment flow as an alternative to the browser-based credit card checkout. This uses USDC on Solana and Base.
+
+#### Quick Setup (Testnet)
+
+```bash
+# 1. Generate merchant receiving wallets
+cd merchant-backend && python setup_x402_wallet.py
+
+# 2. Fund the merchant Solana wallet with devnet SOL
+#    https://faucet.solana.com/
+
+# 3. Create the merchant's USDC token account (ATA) on Solana
+python create_solana_ata.py
+
+# 4. Fund both wallets with testnet USDC
+#    https://faucet.circle.com
+
+# 5. Generate agent spending wallets
+cd ../tap-agent && python setup_x402_wallet.py
+
+# 6. Fund agent wallets with testnet USDC
+#    https://faucet.circle.com
+```
+
+Each setup script creates Solana + EVM keypairs and writes them to the local `.env`. The `create_solana_ata.py` script creates the USDC Associated Token Account that the merchant needs to receive Solana payments — no need to install the `spl-token` CLI.
+
+#### Manual Configuration
+
+If you prefer to use existing wallets, set these in `merchant-backend/.env`:
+```bash
+X402_FACILITATOR_URL=https://x402.org/facilitator
+X402_SVM_ADDRESS=<your-solana-wallet-address>
+X402_EVM_ADDRESS=<your-evm-wallet-address>
+X402_SVM_NETWORK=solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1
+X402_EVM_NETWORK=eip155:84532
+X402_ENABLED=true
+```
+
+And in `tap-agent/.env`:
+```bash
+EVM_PRIVATE_KEY=<your-evm-private-key>
+SVM_PRIVATE_KEY=<your-solana-private-key-base58>
+```
+
+The agent reuses the existing `MERCHANT_API_URL` env var (default `http://localhost:8000`).
+
+#### Facilitators
+
+A facilitator verifies and settles x402 payments on behalf of the merchant. Both production facilitators offer a free tier of 1,000 settlements per month.
+
+| Facilitator | URL | Docs |
+|---|---|---|
+| **x402.org** (default) | `https://x402.org/facilitator` | Testnet only |
+| **PayAI** | `https://facilitator.payai.network` | [docs.payai.network](https://docs.payai.network/x402/quickstart#facilitator) |
+| **Coinbase CDP** | `https://api.cdp.coinbase.com/platform/v2/x402` | [docs.cdp.coinbase.com](https://docs.cdp.coinbase.com/x402/quickstart-for-sellers#running-on-mainnet) |
+
+The default `https://x402.org/facilitator` is a public good suitable for testnet development. For production, switch to PayAI or Coinbase CDP.
+
+#### Moving to Production
+
+To accept real payments, update your `merchant-backend/.env` with mainnet values:
+
+| Setting | Testnet | Mainnet |
+|---|---|---|
+| `X402_SVM_NETWORK` | `solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1` | `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp` |
+| `X402_EVM_NETWORK` | `eip155:84532` (Base Sepolia) | `eip155:8453` (Base) |
+| USDC mint (Solana) | `4zMMC9srt5Ri5X14GAgXhaHii3GnPAEERYPJgZJDncDU` | `EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v` |
+| USDC contract (Base) | `0x036CbD53842c5426634e7929541eC2318f3dCF7e` | `0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913` |
+
+Switch `X402_FACILITATOR_URL` to either PayAI or Coinbase CDP and refer to their docs for credential setup.
+
+#### Testing
+1. Select "x402 Checkout" in the TAP Agent UI
+2. Enter product ID and quantity
+3. Click "Pay with Crypto" to complete the payment flow
+4. The agent will create a cart, request payment requirements (HTTP 402), sign the payment, and settle on-chain
+
 ### 🏗️ **Architecture Overview**
 
 The sample demonstrates a complete TAP ecosystem:
