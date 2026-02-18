@@ -1726,8 +1726,8 @@ def main():
         with x402_col2:
             x402_quantity = st.number_input("Quantity", min_value=1, value=1, step=1)
 
-        x402_api_url = os.getenv("MERCHANT_API_URL", "http://localhost:8000")
-        st.caption(f"Merchant API: {x402_api_url}")
+        x402_api_url = os.getenv("CDN_PROXY_URL", "http://localhost:3001")
+        st.caption(f"CDN Proxy: {x402_api_url}")
 
         if st.button(button_text, type="primary", help=button_help):
             with st.spinner("Processing x402 payment..."):
