@@ -55,25 +55,31 @@ This repository contains a complete sample implementation demonstrating the Trus
    pip install -r requirements.txt
    ```
 
-2. **Start All Services**:
+2. **Generate Agent Keys** (one-time setup):
+   ```bash
+   cd tap-agent && python setup_keys.py
+   ```
+   This creates RSA and Ed25519 signing keys in `tap-agent/.env`.
+
+3. **Start All Services**:
    ```bash
    # Terminal 1: Agent Registry (port 8001)
    cd agent-registry && python main.py
-   
+
    # Terminal 2: Merchant Backend (port 8000)
    cd merchant-backend && python -m uvicorn app.main:app --reload
-   
+
    # Terminal 3: CDN Proxy (port 3002)
    cd cdn-proxy && npm install && npm start
-   
+
    # Terminal 4: Merchant Frontend (port 3001)
    cd merchant-frontend && npm install && npm run dev
-   
+
    # Terminal 5: TAP Agent (port 8501)
    cd tap-agent && streamlit run agent_app.py
    ```
 
-3. **Try the Demo**:
+4. **Try the Demo**:
    - Open the TAP Agent at http://localhost:8501
    - Configure merchant URL: http://localhost:3001
    - Generate signatures and interact with the sample merchant
