@@ -67,10 +67,13 @@ app.include_router(auth.router, prefix="/api")
 
 @app.on_event("startup")
 def startup_event():
-    """Create database tables on startup"""
+    """Create database tables and seed sample data on startup"""
     logger.info("🚀 Starting Reference Merchant API...")
     create_tables()
     logger.info("✅ Database tables created/verified")
+    from create_sample_data import create_sample_products
+    create_sample_products()
+    logger.info("✅ Sample products seeded")
     # Initialize x402 payments if enabled
     from app.x402_setup import initialize_x402, is_enabled
     initialize_x402()

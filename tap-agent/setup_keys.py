@@ -103,11 +103,6 @@ def main():
     print("Ed25519 key pair generated")
 
     print(f"\nKeys written to {ENV_PATH}")
-    print("\n--- Next Steps ---")
-    print("1. Start the agent registry:  cd ../agent-registry && python main.py")
-    print("2. Register this agent's public keys with the registry:")
-    print("   cd ../agent-registry && python populate_sample_data.py")
-    print("3. Start the TAP Agent:       streamlit run agent_app.py")
 
 
 if __name__ == "__main__":
