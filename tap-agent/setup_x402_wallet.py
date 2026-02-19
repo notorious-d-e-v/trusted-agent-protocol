@@ -58,43 +58,58 @@ def upsert_env(key: str, value: str):
     ENV_PATH.write_text("".join(lines))
 
 
+def read_env(key: str) -> str | None:
+    """Return the value of *key* from .env, or None if not found."""
+    if not ENV_PATH.exists():
+        return None
+    for line in ENV_PATH.read_text().splitlines():
+        stripped = line.lstrip()
+        if stripped.startswith(f"{key}="):
+            return stripped.split("=", 1)[1].strip()
+    return None
+
+
+def confirm_overwrite(label: str, key: str) -> bool:
+    """Prompt the user to confirm overwriting an existing private key."""
+    existing = read_env(key)
+    if not existing or existing in ("", "<your-evm-private-key>", "<your-solana-private-key-base58>"):
+        return True
+    answer = input(f"{label} private key already exists in .env. Overwrite? [y/N] ").strip().lower()
+    return answer == "y"
+
+
 def main():
     print("=== x402 Agent Wallet Setup ===\n")
 
     # --- Solana ---
     try:
-        svm_privkey, svm_address = generate_solana_keypair()
-        print(f"Solana address:     {svm_address}")
-        print(f"  (private key stored in .env as SVM_PRIVATE_KEY)")
-        upsert_env("SVM_PRIVATE_KEY", svm_privkey)
+        if confirm_overwrite("Solana", "SVM_PRIVATE_KEY"):
+            svm_privkey, svm_address = generate_solana_keypair()
+            print(f"Solana address:     {svm_address}")
+            print(f"  (private key stored in .env as SVM_PRIVATE_KEY)")
+            upsert_env("SVM_PRIVATE_KEY", svm_privkey)
+        else:
+            print("Solana wallet:      keeping existing key")
+            svm_address = None
     except ImportError:
         print("Skipping Solana — 'solders' not installed (pip install x402[svm])")
         svm_address = None
 
     # --- EVM ---
     try:
-        evm_privkey, evm_address = generate_evm_account()
-        print(f"EVM address:        {evm_address}")
-        print(f"  (private key stored in .env as EVM_PRIVATE_KEY)")
-        upsert_env("EVM_PRIVATE_KEY", evm_privkey)
+        if confirm_overwrite("EVM", "EVM_PRIVATE_KEY"):
+            evm_privkey, evm_address = generate_evm_account()
+            print(f"EVM address:        {evm_address}")
+            print(f"  (private key stored in .env as EVM_PRIVATE_KEY)")
+            upsert_env("EVM_PRIVATE_KEY", evm_privkey)
+        else:
+            print("EVM wallet:         keeping existing key")
+            evm_address = None
     except ImportError:
         print("Skipping EVM — 'eth_account' not installed (pip install eth-account)")
         evm_address = None
 
     print(f"\nWrote configuration to {ENV_PATH}")
-
-    # --- Next steps ---
-    print("\n--- Next Steps ---")
-    if svm_address:
-        print(f"1. Fund Solana wallet with devnet SOL:  https://faucet.solana.com/")
-        print(f"2. Get testnet USDC:                    https://faucet.circle.com")
-        print(f"   Fund address: {svm_address}")
-    if evm_address:
-        print(f"3. Fund EVM wallet with Base Sepolia ETH + testnet USDC:")
-        print(f"   https://faucet.circle.com")
-        print(f"   Fund address: {evm_address}")
-    print(f"\n4. Run the merchant setup script too:")
-    print(f"   cd ../merchant-backend && python setup_x402_wallet.py")
 
 
 if __name__ == "__main__":

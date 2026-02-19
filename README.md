@@ -101,26 +101,17 @@ The sample includes an x402 payment flow as an alternative to the browser-based 
 #### Quick Setup (Testnet)
 
 ```bash
-# 1. Generate merchant receiving wallets
-cd merchant-backend && python setup_x402_wallet.py
-
-# 2. Fund the merchant Solana wallet with devnet SOL
-#    https://faucet.solana.com/
-
-# 3. Create the merchant's USDC token account (ATA) on Solana
-python create_solana_ata.py
-
-# 4. Fund both wallets with testnet USDC
-#    https://faucet.circle.com
-
-# 5. Generate agent spending wallets
-cd ../tap-agent && python setup_x402_wallet.py
-
-# 6. Fund agent wallets with testnet USDC
-#    https://faucet.circle.com
+python setup_x402.py
 ```
 
-Each setup script creates Solana + EVM keypairs and writes them to the local `.env`. The `create_solana_ata.py` script creates the USDC Associated Token Account that the merchant needs to receive Solana payments — no need to install the `spl-token` CLI.
+This interactive script generates merchant and agent wallets (Solana + EVM), then walks you through funding each wallet. It polls the blockchain every 15 seconds so you can open the faucets in your browser while the script waits:
+
+1. Generates merchant wallets and waits for devnet SOL funding (https://faucet.solana.com/)
+2. Creates the merchant's USDC token account (ATA) on Solana
+3. Generates agent wallets
+4. Waits for testnet USDC funding on agent wallets (https://faucet.circle.com)
+
+Each setup script creates Solana + EVM keypairs and writes them to the local `.env`. The `create_solana_ata.py` script creates the USDC Associated Token Account that the merchant needs to receive Solana payments.
 
 #### Manual Configuration
 
@@ -167,11 +158,15 @@ To accept real payments, update your `merchant-backend/.env` with mainnet values
 
 Switch `X402_FACILITATOR_URL` to either PayAI or Coinbase CDP and refer to their docs for credential setup.
 
-#### Testing
-1. Select "x402 Checkout" in the TAP Agent UI
-2. Enter product ID and quantity
-3. Click "Pay with Crypto" to complete the payment flow
-4. The agent will create a cart, request payment requirements (HTTP 402), sign the payment, and settle on-chain
+#### Testing x402 Payments
+
+1. Make sure all services are running (see [Quick Start](#-running-the-sample))
+2. Open the TAP Agent at http://localhost:8501
+3. Under **Action Selection**, choose **x402 Checkout**
+4. Enter a **Product ID** (e.g. `21` for a digital product) and **Quantity**
+5. Click **Pay with USDC (x402)**
+
+The agent will create a cart, send a checkout request (receives HTTP 402 with payment requirements), sign the USDC payment, and settle on-chain via the facilitator.
 
 ### 🏗️ **Architecture Overview**
 

@@ -138,8 +138,6 @@ def main():
     sig = rpc(rpc_url, "sendTransaction", [tx_b64, {"encoding": "base64"}])
     print(f"Transaction signature: {sig}")
     print(f"\nUSDC ATA created successfully: {ata}")
-    print(f"\nYou can now fund this wallet with testnet USDC at:")
-    print(f"  https://faucet.circle.com  (address: {wallet})")
 
 
 if __name__ == "__main__":
